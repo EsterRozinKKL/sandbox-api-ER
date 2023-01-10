@@ -7,7 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
-
+using sandboxEr.Repositories.Implementations;
+using sandboxEr.Repositories.Interfaces;
 namespace sandboxEr
 {       
       public class Startup
@@ -42,6 +43,7 @@ namespace sandboxEr
             // configure HttpClient for calling other APIs 
             services.AddHttpClient();
             services.AddHttpContextAccessor();
+            services.AddScoped<IGetToken,GetToken>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

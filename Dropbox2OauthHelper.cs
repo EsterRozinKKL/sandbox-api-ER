@@ -12,11 +12,7 @@ public sealed class OAuth2Response
         /// <param name="scopeList">The scope list.</param>
         internal OAuth2Response(string accessToken, string refreshToken, string uid, string state, string tokenType, int expiresIn, string[] scopeList)
         {
-            if (string.IsNullOrEmpty(accessToken) || uid == null)
-            {
-                throw new ArgumentException("Invalid OAuth 2.0 response, missing access_token and/or uid.");
-            }
-
+          
             this.AccessToken = accessToken;
             this.Uid = uid;
             this.State = state;
@@ -35,10 +31,7 @@ public sealed class OAuth2Response
         /// <param name="tokenType">The token_type.</param>
         internal OAuth2Response(string accessToken, string uid, string state, string tokenType)
         {
-            if (string.IsNullOrEmpty(accessToken) || uid == null)
-            {
-                throw new ArgumentException("Invalid OAuth 2.0 response, missing access_token and/or uid.");
-            }
+         
 
             this.AccessToken = accessToken;
             this.Uid = uid;
@@ -48,7 +41,20 @@ public sealed class OAuth2Response
             this.ExpiresAt = null;
             this.ScopeList = null;
         }
-
+  /// <summary>
+        /// Initializes a new instance of the <see cref="OAuth2Response"/> class.
+        /// </summary>
+        /// <param name="message">message</param>
+        internal OAuth2Response(string message)
+        {
+            this.AccessToken = null;
+            this.Uid = null;
+            this.State = null;
+            this.TokenType = null;
+            this.RefreshToken = null;
+            this.ExpiresAt = null;
+            this.ScopeList = null;
+        }
         /// <summary>
         /// Gets the access token, a token which can be used to make calls to the Dropbox API.
         /// </summary>

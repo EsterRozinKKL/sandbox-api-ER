@@ -44,6 +44,12 @@ namespace sandboxEr
             services.AddHttpClient();
             services.AddHttpContextAccessor();
             services.AddScoped<IGetToken,GetToken>();
+               services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("dropbox", new OpenApiInfo { Title = "dropbox" });
+            });
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -70,6 +76,14 @@ namespace sandboxEr
             {
                 endpoints.MapControllers();
             });
+            app.UseSwagger(c =>
+                {
+                    c.RouteTemplate = "/{documentName}/openapi.json";
+                });
+                app.UseSwaggerUI(c => {c.RoutePrefix = string.Empty;c.SwaggerEndpoint("/dropbox/openapi.json", "dropbox");});
+          
+        
+        
              }
 
 

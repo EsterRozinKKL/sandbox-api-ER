@@ -1,21 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using Dropbox.Api;
 using Newtonsoft.Json.Linq;
 using sandboxEr.Repositories.Interfaces;
-
 namespace sandboxEr.Repositories.Implementations
 {
     public class GetToken:IGetToken
     {
+        private const string LoopbackHost = "http://127.0.0.1:52475/";
+        private string authorization_code;
+        // URL to receive OAuth 2 redirect from Dropbox server.
+        // You also need to register this redirect URL on https://www.dropbox.com/developers/apps.
+        private readonly Uri RedirectUri = new Uri(LoopbackHost + "authorize");
 
+        // URL to receive access token from JS.
+        private readonly Uri JSRedirectUri = new Uri(LoopbackHost + "token");
 
   public  async Task<OAuth2Response> GenerateToken(TokenParam token)
         {
@@ -53,7 +51,7 @@ namespace sandboxEr.Repositories.Implementations
                     parameters["code_verifier"] = token.codeVerifier;
                 }
 
-                if (!string.IsNullOrEmpty(token.redirectUri))
+             //   if (!string.IsNullOrEmpty(token.redirectUri))
                 {
                     parameters["redirect_uri"] = token.redirectUri;
                 }
@@ -111,5 +109,48 @@ namespace sandboxEr.Repositories.Implementations
             }
            
         }
+
+
+
+public  async Task<string> GenerateCode()
+    {
+
+        var authorizeUri = DropboxOAuth2Helper.GetAuthorizeUri(oauthResponseType:OAuthResponseType.Code,
+													   clientId: "mg8u3pah8i07t3q",
+													   redirectUri: "http://127.0.0.1:52475/",
+													   state: "Israel",
+													   tokenAccessType: TokenAccessType.Offline,
+													   scopeList: null,
+													   includeGrantedScopes: IncludeGrantedScopes.None);
+
+      var http=new HttpListener();
+      http.Prefixes.Add(LoopbackHost);
+      http.Start();
+      System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(){FileName=authorizeUri.ToString(),UseShellExecute=true} );
+      await HandleOAuth2Redirect(http);
+      return authorization_code;
+    }
+
+     /// <summary>
+        /// Handles the redirect from Dropbox server. Because we are using token flow, the local
+        /// http server cannot directly receive the URL fragment. We need to return a HTML page with
+        /// inline JS which can send URL fragment to local server as URL parameter.
+        /// </summary>
+        /// <param name="http">The http listener.</param>
+        /// <returns>The <see cref="Task"/></returns>
+        private async Task HandleOAuth2Redirect(HttpListener http)
+        {
+            var context = await http.GetContextAsync();
+           authorization_code=context.Request.Url.Query;
+authorization_code=authorization_code.Replace("?code=","");
+authorization_code=authorization_code.Split("&")[0];
+
+        }
+
+
+
     }
 }
+
+
+        

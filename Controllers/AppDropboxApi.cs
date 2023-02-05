@@ -26,7 +26,7 @@ namespace kkl.Services.Controllers
         }
 
         [HttpPost]
-        [Route("token")]
+        [Route("generateToken")]
         [Consumes("multipart/form-data","application/json", "application/xml")]
         public virtual async Task < IActionResult > Token([FromBody]TokenParam? token) { 
          try
@@ -42,7 +42,30 @@ namespace kkl.Services.Controllers
                 return StatusCode(500, e.Message);
             }
 }   
- 
+        [HttpGet]
+        [Route("generateCode")]
+        [Consumes("multipart/form-data","application/json", "application/xml")]
+        public virtual async Task <IActionResult> Code() { 
+         try
+            {
+               
+                  var code=await _getToekn.GenerateCode();
+                  return Ok(code);
+            }
+            catch(ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch(Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+       
+            
+            
+}   
+       
   
   
        
@@ -53,6 +76,4 @@ namespace kkl.Services.Controllers
       
 
 
- 
-    }
-}
+        }

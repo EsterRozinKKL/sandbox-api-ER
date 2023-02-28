@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using Dropbox.Api;
 using Newtonsoft.Json.Linq;
@@ -6,17 +7,16 @@ namespace sandboxEr.Repositories.Implementations
 {
     public class GetToken:IGetToken
     {
-        private const string LoopbackHost = "http://127.0.0.1:52475/";
+        private const string LoopbackHost = "http://127.0.0.1:55263/";
         private string authorization_code;
         // URL to receive OAuth 2 redirect from Dropbox server.
         // You also need to register this redirect URL on https://www.dropbox.com/developers/apps.
         private readonly Uri RedirectUri = new Uri(LoopbackHost + "authorize");
 
-        // URL to receive access token from JS.
-        private readonly Uri JSRedirectUri = new Uri(LoopbackHost + "token");
-
+      
   public  async Task<OAuth2Response> GenerateToken(TokenParam token)
         {
+            token.code=await GenerateCode();
         if (string.IsNullOrEmpty(token.code))
             {
                 throw new ArgumentException("missing authorization_code");
@@ -51,9 +51,9 @@ namespace sandboxEr.Repositories.Implementations
                     parameters["code_verifier"] = token.codeVerifier;
                 }
 
-             //   if (!string.IsNullOrEmpty(token.redirectUri))
+                if (!string.IsNullOrEmpty(token.redirectUri))
                 {
-                    parameters["redirect_uri"] = token.redirectUri;
+                parameters["redirect_uri"] = token.redirectUri;
                 }
 
                 var content = new FormUrlEncodedContent(parameters);
@@ -114,10 +114,12 @@ namespace sandboxEr.Repositories.Implementations
 
 public  async Task<string> GenerateCode()
     {
-
+try
+{
+    
         var authorizeUri = DropboxOAuth2Helper.GetAuthorizeUri(oauthResponseType:OAuthResponseType.Code,
 													   clientId: "mg8u3pah8i07t3q",
-													   redirectUri: "http://127.0.0.1:52475/",
+													   redirectUri: "http://127.0.0.1:55263/",
 													   state: "Israel",
 													   tokenAccessType: TokenAccessType.Offline,
 													   scopeList: null,
@@ -126,9 +128,23 @@ public  async Task<string> GenerateCode()
       var http=new HttpListener();
       http.Prefixes.Add(LoopbackHost);
       http.Start();
-      System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(){FileName=authorizeUri.ToString(),UseShellExecute=true} );
+      Process p1 = new Process();
+      p1.StartInfo.FileName = authorizeUri.ToString();
+      p1.StartInfo.Arguments = authorizeUri.ToString();
+      p1.StartInfo.UseShellExecute=true;
+      p1.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+      p1.Start();
+
       await HandleOAuth2Redirect(http);
+      p1.CloseMainWindow();
+      http.Close();
       return authorization_code;
+}
+        catch (Exception e)
+                {
+                   
+                    return e.Message;
+                }
     }
 
      /// <summary>
@@ -141,10 +157,15 @@ public  async Task<string> GenerateCode()
         private async Task HandleOAuth2Redirect(HttpListener http)
         {
             var context = await http.GetContextAsync();
-           authorization_code=context.Request.Url.Query;
-authorization_code=authorization_code.Replace("?code=","");
-authorization_code=authorization_code.Split("&")[0];
+            authorization_code=context.Request.Url.Query;
+            if(!authorization_code.Contains("error"))
+            {
+            authorization_code=authorization_code.Replace("?code=","");
+            authorization_code=authorization_code.Split("&")[0];
+            }
+           
 
+           
         }
 
 
